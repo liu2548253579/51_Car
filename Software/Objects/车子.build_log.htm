@@ -1,0 +1,48 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: μVision V5.14.2
+Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: frank 2548253579@qq.com, nastkif, LIC=LSXG8-38VDX-4FEI9-4N3NE-5VIY5-MI1TI
+ 
+Tool Versions:
+Toolchain:       PK51 Prof. Developers Kit  Version: 9.54
+Toolchain Path:  D:\keil5\C51\BIN
+C Compiler:      C51.exe V9.54
+Assembler:       A51.exe V8.02c
+Linker/Locator:  BL51.exe V6.22
+Library Manager: LIB51.exe V4.30.1.0
+Hex Converter:   OH51.exe V2.7.0.0
+CPU DLL:         S8051.DLL V3.100.0.0
+Dialog DLL:      DP51.DLL V2.62.0.1 
+<h2>Project:</h2>
+D:\LEARNINGRESOURCES\车子\wifi寻迹小车\最终完成版\车子.uvproj
+Project File Date:  05/20/2021
+
+<h2>Output:</h2>
+Rebuild target 'Target 1'
+assembling STARTUP.A51...
+compiling i2c.c...
+compiling main.c...
+compiling oledchar.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?_OLEDDISPLAY?MAIN
+    CALLER1: ?C_C51STARTUP
+    CALLER2: ?PR?COM_INT?MAIN
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?_OLED_PUT_CHAR_16X16?I2C
+    CALLER1: ?C_C51STARTUP
+    CALLER2: ?PR?COM_INT?MAIN
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?GETDISTANCE?MAIN
+    CALLER1: ?C_C51STARTUP
+    CALLER2: ?PR?COM_INT?MAIN
+Program Size: data=125.0 xdata=0 code=10070
+creating hex file from ".\Objects\车子"...
+".\Objects\车子" - 0 Error(s), 3 Warning(s).
+</pre>
+</body>
+</html>

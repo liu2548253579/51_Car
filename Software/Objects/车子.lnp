@@ -1,0 +1,6 @@
+".\Objects\STARTUP.obj",
+".\Objects\i2c.obj",
+".\Objects\main.obj",
+".\Objects\oledchar.obj" 
+TO ".\Objects\车子" 
+PRINT(".\Listings\车子.m51") RAMSIZE(256) 

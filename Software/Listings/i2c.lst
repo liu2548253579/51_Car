@@ -1,0 +1,182 @@
+C51 COMPILER V9.54   I2C                                                                   05/22/2021 09:45:54 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE I2C
+OBJECT MODULE PLACED IN .\Objects\i2c.obj
+COMPILER INVOKED BY: D:\keil5\C51\BIN\C51.EXE i2c.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\i2c.lst
+                    -) TABS(2) OBJECT(.\Objects\i2c.obj)
+
+line level    source
+
+   1          #include"i2c.h"
+   2          #include"intrins.h"
+   3          
+   4          
+   5          void Delay10us()
+   6          {
+   7   1        unsigned char i;
+   8   1      
+   9   1        _nop_();
+  10   1        i = 25;
+  11   1        while (--i);
+  12   1      }
+  13          void I2cStart()
+  14          {
+  15   1        SDA=1;
+  16   1        Delay10us();
+  17   1        SCL=1;
+  18   1        Delay10us();//建立时间是SDA保持时间>4.7us
+  19   1        SDA=0;
+  20   1        Delay10us();//保持时间是>4us
+  21   1        SCL=0;      
+  22   1        Delay10us();    
+  23   1      }
+  24          void I2cStop()
+  25          {
+  26   1        SDA=0;
+  27   1        Delay10us();
+  28   1        SCL=1;
+  29   1        Delay10us();//建立时间大于4.7us
+  30   1        SDA=1;
+  31   1        Delay10us();    
+  32   1      }
+  33          unsigned char I2cSendByte(unsigned char dat)
+  34          {
+  35   1          unsigned char a=0,b=0;//最大255，一个机器周期为1us，最大延时255us。   
+  36   1      a=0;  while (1){//要发送8位，从最高位开始
+  37   2          SDA=dat>>7;  //起始信号之后SCL=0，所以可以直接改变SDA信号
+  38   2          dat=dat<<1;
+  39   2          Delay10us();
+  40   2          SCL=1;
+  41   2          Delay10us();//建立时间>4.7us
+  42   2          SCL=0;
+  43   2          Delay10us();//时间大于4us   
+  44   2      a = a+1;if (a >= 8){break;} }
+  45   1        SDA=1;
+  46   1        Delay10us();
+  47   1        SCL=1;
+  48   1        while(SDA)//等待应答，也就是等待从设备把SDA拉低
+  49   1        {
+  50   2          b++;
+  51   2          if(b>200)  //如果超过2000us没有应答发送失败，或者为非应答，表示接收结束
+  52   2          {
+  53   3            SCL=0;
+  54   3            Delay10us();
+C51 COMPILER V9.54   I2C                                                                   05/22/2021 09:45:54 PAGE 2   
+
+  55   3            return 0;
+  56   3          }
+  57   2        }
+  58   1        SCL=0;
+  59   1        Delay10us();
+  60   1        return 1;   
+  61   1      }
+  62          
+  63          void oled_Write_cmd(unsigned char cmd)
+  64          {
+  65   1        I2cStart();
+  66   1        I2cSendByte(0x78);//发送写器件地址
+  67   1        I2cSendByte(0x00);//发送要写入内存地址
+  68   1        I2cSendByte(cmd); //写入命令
+  69   1        I2cStop();
+  70   1      }
+  71          
+  72          void oled_Write_data(unsigned char dat)
+  73          {
+  74   1        I2cStart();
+  75   1        I2cSendByte(0x78);//发送写器件地址
+  76   1        I2cSendByte(0x40);//发送要写入内存地址
+  77   1        I2cSendByte(dat); //写入数据
+  78   1        I2cStop();
+  79   1      }
+  80          
+  81          void oled_clear()  //页寻址下的oled清屏函数
+  82          { 
+  83   1        unsigned char i,j; 
+  84   1        oled_Write_cmd(0x20);
+  85   1        oled_Write_cmd(0x02);
+  86   1      i=0;  while (1){ 
+  87   2            oled_Write_cmd(0xb0+i);
+  88   2          oled_Write_cmd(0x00);
+  89   2          oled_Write_cmd(0x10);
+  90   2      j=0; while (1){
+  91   3             oled_Write_data(0x00); 
+  92   3      j= j+1;if (j >= 128){break;}}
+  93   2      
+  94   2      i = i+1;if (i >= 8){break;} }
+  95   1      }
+  96          
+  97          void oled_initial()//oled初始化函数
+  98          {
+  99   1             
+ 100   1        oled_Write_cmd(0xae);//--turn off oled panel 关闭显示
+ 101   1          oled_Write_cmd(0x00);//---set low column address设置起始列的低四位 0x0x
+ 102   1          oled_Write_cmd(0x10);//---set high column address设置起始列的高四位0x1x
+ 103   1          oled_Write_cmd(0x40);//--set start line address  Set Mapping RAM Display Start Line (0x00~0x3F)
+ 104   1          oled_Write_cmd(0x81);//--set contrast control register设置对比度
+ 105   1          oled_Write_cmd(0xff); // Set SEG Output Current Brightness对比度为oxff
+ 106   1          oled_Write_cmd(0xa1);//--Set SEG/Column Mapping     0xa0左右反置 0xa1正常
+ 107   1          oled_Write_cmd(0xc8);//Set COM/Row Scan Direction   0xc0上下反置 0xc8正常
+ 108   1          oled_Write_cmd(0xa6);//--set normal display
+ 109   1          oled_Write_cmd(0xa8);//--set multiplex ratio(1 to 64)
+ 110   1          oled_Write_cmd(0x3f);//--1/64 duty
+ 111   1          oled_Write_cmd(0xd3);//-set display offset    Shift Mapping RAM Counter (0x00~0x3F)
+ 112   1          oled_Write_cmd(0x00);//-not offset
+ 113   1          oled_Write_cmd(0xd5);//--set display clock divide ratio/oscillator frequency
+ 114   1          oled_Write_cmd(0x80);//--set divide ratio, Set Clock as 100 Frames/Sec
+ 115   1          oled_Write_cmd(0xd9);//--set pre-charge period
+ 116   1          oled_Write_cmd(0xf1);//Set Pre-Charge as 15 Clocks & Discharge as 1 Clock
+C51 COMPILER V9.54   I2C                                                                   05/22/2021 09:45:54 PAGE 3   
+
+ 117   1          oled_Write_cmd(0xda);//--set com pins hardware configuration
+ 118   1          oled_Write_cmd(0x12);
+ 119   1          oled_Write_cmd(0xdb);//--set vcomh
+ 120   1          oled_Write_cmd(0x40);//Set VCOM Deselect Level
+ 121   1          oled_Write_cmd(0x20);//-Set Page Addressing Mode (0x00/0x01/0x02)设置地址模式
+ 122   1                  //水平寻址，垂直寻址，页寻址
+ 123   1          oled_Write_cmd(0x02);// 地址模式为页寻址
+ 124   1          oled_Write_cmd(0x8d);//--set Charge Pump enable/disable
+ 125   1          oled_Write_cmd(0x14);//--set(0x10) disable
+ 126   1          oled_Write_cmd(0xa4);// Disable Entire Display On (0xa4/0xa5)
+ 127   1          oled_Write_cmd(0xa6);// Disable Inverse Display On (0xa6/a7) 
+ 128   1          oled_Write_cmd(0xaf);//--turn on oled panel开启显示
+ 129   1      
+ 130   1        oled_clear();//清屏
+ 131   1      }
+ 132          
+ 133          void oled_put_char_16x16(unsigned char x,unsigned char y,unsigned char t)/*设置显示坐标函数,t为0时，字符为
+             -8x16
+ 134                                                                 t为1时，字符为16x16*/                 
+ 135          {  
+ 136   1           oled_Write_cmd(0x20);
+ 137   1         oled_Write_cmd(0x00);//设置地址模式为水平选址
+ 138   1           //set page
+ 139   1           oled_Write_cmd(0x22);
+ 140   1         oled_Write_cmd(y*2);
+ 141   1         oled_Write_cmd(0x01+y*2);
+ 142   1      
+ 143   1         //set colum
+ 144   1           oled_Write_cmd(0x21);
+ 145   1         oled_Write_cmd((0x08+0x08*t)*x);
+ 146   1         oled_Write_cmd((0x08+0x08*t)*x+(0x07+0x08*t));
+ 147   1      }
+ 148          
+ 149          
+ 150          
+ 151           
+ 152          
+ 153          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    399    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
